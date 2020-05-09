@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "637101485420",
+    "firebase_url": "https://trailmap-f236b.firebaseio.com",
+    "project_id": "trailmap-f236b",
+    "storage_bucket": "trailmap-f236b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:637101485420:android:9a956bf0be8fe8f3b09749",
+        "android_client_info": {
+          "package_name": "com.example.trialmap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "637101485420-111bi58j947memm35u11gb6e61epvui4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXdFUboLOda1TRybVnen1AxL2ywDX9j5s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "637101485420-111bi58j947memm35u11gb6e61epvui4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
