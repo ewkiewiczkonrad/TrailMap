@@ -71,8 +71,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mLoginButton.setOnClickListener(this);
         mSignUpButton.setOnClickListener(this);
 
-        Intent intent = new Intent(this, MenuActivity.class);
-        startActivity(intent);
+
     }
 
 
