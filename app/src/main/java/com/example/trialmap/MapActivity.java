@@ -23,7 +23,7 @@ public class MapActivity extends AppCompatActivity {
         Context ctx = getApplicationContext();
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
 
-        setContentView(R.layout.activity_main);
+
 
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);

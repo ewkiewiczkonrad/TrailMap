@@ -4,7 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background_gradient"
     tools:context=".MainActivity">
+
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -14,39 +16,53 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
+
         <ImageView
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:src="@drawable/rowerzysta">
+            android:src="@drawable/rowerzysta"
+            android:contentDescription="TODO">
 
         </ImageView>
+
         <TextView
-            android:text="Log In"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="center_vertical"
-            android:textSize="40dp"
-            android:padding="20dp">
-
+            android:padding="20dp"
+            android:src="@drawable/ic_google_logo"
+            android:text="@string/log_in"
+            android:textSize="40dp">
 
 
         </TextView>
 
     </LinearLayout>
+
     <LinearLayout
+        android:id="@+id/linearLayout3"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
-        app:layout_constraintVertical_bias="0.333">
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+
+        <ProgressBar
+            android:id="@+id/loading_pg"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:visibility="invisible">
+
+        </ProgressBar>
 
         <EditText
             android:id="@+id/email_et"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:ems="10"
             android:hint="E-mail"
             android:inputType="textPersonName"
@@ -56,6 +72,7 @@
             android:id="@+id/password_et"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:ems="10"
             android:hint="Password"
             android:inputType="textPersonName"
@@ -65,13 +82,29 @@
             android:id="@+id/logIn_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="26dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/round_bg"
             android:text="Login" />
 
         <Button
             android:id="@+id/Signup_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="26dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/round_bg"
             android:text="Sign up" />
+
+        <ImageView
+            android:id="@+id/Google_image"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="20dp"
+            android:layout_gravity="center"
+
+
+            android:src="@drawable/ic_google_logo"></ImageView>
     </LinearLayout>
 
 

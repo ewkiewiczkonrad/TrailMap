@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">TrialMap</string>
     <string name="openMapButton">Open Map</string>
+    <string name="log_in">Log In</string>
 </resources>
