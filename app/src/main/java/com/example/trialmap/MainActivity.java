@@ -50,6 +50,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Intent intent = new Intent();
+        intent.setClass(MainActivity.this, MapActivity.class);
+
+        startActivity(intent);
+
         mLoginButton = (Button) findViewById(R.id.logIn_btn);
         mSignUpButton = (Button) findViewById(R.id.Signup_btn);
         mEmailEditText = (EditText) findViewById(R.id.email_et);
