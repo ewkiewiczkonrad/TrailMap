@@ -29,5 +29,4 @@ Project is: in progress
 
 
 ## Contact
-Created by Konrad Ewkiewicz(konrad@ewkiewicz.pl) - feel free to contact me!
-		by Paweł Woźniak(Wpawel78@gmail.com) - feel free to contact me!
+Created by Konrad Ewkiewicz(konrad@ewkiewicz.pl), Paweł Woźniak(Wpawel78@gmail.com) - feel free to contact me!
