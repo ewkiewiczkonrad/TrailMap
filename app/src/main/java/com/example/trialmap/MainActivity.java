@@ -23,6 +23,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -39,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText mEmailEditText;
     private EditText mPasswordEditText;
     private ImageView mGoogleImage;
+    private TextView mForgotPassword;
 
 
     static final int GOOGLE_SIGN = 123;
@@ -61,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
         mPasswordEditText=(EditText) findViewById(R.id.password_et);
         mGoogleImage = (ImageView) findViewById(R.id.Google_image);
         progressBar = (ProgressBar) findViewById(R.id.loading_pg);
+        mForgotPassword = (TextView) findViewById(R.id.forgotPassword);
+
 
 
         mAuth = FirebaseAuth.getInstance();
@@ -83,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
         mSignUpButton.setOnClickListener(v -> tryToSignUp());
         mLoginButton.setOnClickListener(v -> tryToLogin());
+        mForgotPassword.setOnClickListener(v ->  resetPassword());
     }
 
 
@@ -124,6 +130,15 @@ public class MainActivity extends AppCompatActivity {
     private void signUp(String email, String password) {
         mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
+
+                //veryfication email
+                FirebaseUser user = mAuth.getCurrentUser();
+                user.sendEmailVerification().addOnSuccessListener(aVoid -> {
+                    Toast.makeText(MainActivity.this, "Veryfication mail has been sent to your email address", Toast.LENGTH_SHORT).show();
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(MainActivity.this,"error" + e.getMessage(),Toast.LENGTH_SHORT).show();
+                });
+                //new Activity
                 Toast.makeText(MainActivity.this, "User created", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(getApplicationContext(), MenuActivity.class));
                 progressBar.setVisibility(View.INVISIBLE);
@@ -161,6 +176,26 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         Intent signIntent = mGoogleSignIn.getSignInIntent();
         startActivityForResult(signIntent, GOOGLE_SIGN);
+
+    }
+//resetPassword
+    private void resetPassword(){
+        String email = mEmailEditText.getText().toString().trim();
+        if (TextUtils.isEmpty(email)){
+            mEmailEditText.setError("Pole nie może być puste");
+        }
+        // mail body doesn't fit
+        if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
+            mEmailEditText.setError("Pole musi być adresem E-mail");
+        }
+        else{
+            mAuth.sendPasswordResetEmail(email).addOnSuccessListener(aVoid -> {
+                Toast.makeText(MainActivity.this, "Message sent", Toast.LENGTH_SHORT).show();
+            }).addOnFailureListener(e -> {
+                Toast.makeText(MainActivity.this, "Error! " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+
+        }
 
     }
 
