@@ -1,5 +1,6 @@
 package com.example.trialmap;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -21,15 +22,17 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity {
 
     private Button mLoginButton;
     private Button mSignUpButton;
@@ -40,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     static final int GOOGLE_SIGN = 123;
     private FirebaseAuth mAuth;
+
     private ProgressBar progressBar;
     private GoogleSignInClient mGoogleSignIn;
     private TextView text;
@@ -50,10 +54,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent intent = new Intent();
-        intent.setClass(MainActivity.this, MapActivity.class);
-
-        startActivity(intent);
 
         mLoginButton = (Button) findViewById(R.id.logIn_btn);
         mSignUpButton = (Button) findViewById(R.id.Signup_btn);
@@ -62,9 +62,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mGoogleImage = (ImageView) findViewById(R.id.Google_image);
         progressBar = (ProgressBar) findViewById(R.id.loading_pg);
 
+
         mAuth = FirebaseAuth.getInstance();
 
-        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions
+        //if user is already registered
+        if(mAuth.getCurrentUser() != null){
+            startActivity(new Intent(getApplicationContext(), MenuActivity.class));
+            finish();
+        }
+
+        /*GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions
                 .Builder()
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -72,26 +79,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mGoogleSignIn = GoogleSignIn.getClient(this,googleSignInOptions);
 
+        */
 
-        mLoginButton.setOnClickListener(this);
-        mSignUpButton.setOnClickListener(this);
-
-
+        mSignUpButton.setOnClickListener(v -> tryToSignUp());
+        mLoginButton.setOnClickListener(v -> tryToLogin());
     }
 
 
-
-    public void onClick(View v){
-        switch(v.getId())
-        {
-            case R.id.Signup_btn: tryToSignUp(); break;
-            case R.id.logIn_btn: isLoginValid(); break;
-        }
-    }
-//Sign up
-    private void tryToSignUp() {
-        String email = mEmailEditText.getText().toString();
-        String password = mPasswordEditText.getText().toString();
+//validation
+    private void validation(){
+        String email = mEmailEditText.getText().toString().trim();  // trim skip spaces
+        String password = mPasswordEditText.getText().toString().trim();
         boolean failed = false;
 
         if (TextUtils.isEmpty(email)){
@@ -107,20 +105,57 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPasswordEditText.setError("Pole nie może być puste");
             failed = true;
         }
+        if(password.length()<6){
+            mPasswordEditText.setError("Hasło musi posiadać co najmniej 6 znaków");
+            failed = true;
+        }
         // Sign up correct
         if(!failed) {
-            signUp(email,password);
+            progressBar.setVisibility(View.VISIBLE);
         }
     }
-
+//Sign up
+    private void tryToSignUp() {
+        String email = mEmailEditText.getText().toString().trim();  // trim skip spaces
+        String password = mPasswordEditText.getText().toString().trim();
+        validation();
+        signUp(email,password);
+    }
     private void signUp(String email, String password) {
-
+        mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
+            if(task.isSuccessful()) {
+                Toast.makeText(MainActivity.this, "User created", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), MenuActivity.class));
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+            else {
+                progressBar.setVisibility(View.INVISIBLE);
+                Toast.makeText(MainActivity.this, "Error! " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 //Login
-    private void  isLoginValid(){
-
+    private void  tryToLogin(){
+        String email = mEmailEditText.getText().toString().trim();  // trim skip spaces
+        String password = mPasswordEditText.getText().toString().trim();
+        validation();
+        login(email,password);
     }
+    private void login(String email,String password){
+        mAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                Toast.makeText(MainActivity.this, "User login", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), MenuActivity.class));
+                progressBar.setVisibility(View.INVISIBLE);
+            }else {
+                progressBar.setVisibility(View.INVISIBLE);
+                Toast.makeText(MainActivity.this, "Error! " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+            }
+
+        });
+    }
+
 //Google
     void SignInGoogle(){
         progressBar.setVisibility(View.VISIBLE);
