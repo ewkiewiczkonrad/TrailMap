@@ -32,22 +32,23 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button mLoginButton;
-    private Button mSignUpButton;
-    private EditText mEmailEditText;
-    private EditText mPasswordEditText;
+    private Button mLoginButton,mSignUpButton;
+    private EditText mEmailEditText,mPasswordEditText;
     private ImageView mGoogleImage;
     private TextView mForgotPassword;
+    private ProgressBar progressBar;
 
 
     static final int GOOGLE_SIGN = 123;
     private FirebaseAuth mAuth;
 
-    private ProgressBar progressBar;
+
+    private GoogleSignInOptions gso;
     private GoogleSignInClient mGoogleSignIn;
     private TextView text;
 
@@ -66,78 +67,69 @@ public class MainActivity extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.loading_pg);
         mForgotPassword = (TextView) findViewById(R.id.forgotPassword);
 
-
-
         mAuth = FirebaseAuth.getInstance();
 
+        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken("637101485420-111bi58j947memm35u11gb6e61epvui4.apps.googleusercontent.com")
+                .requestEmail()
+                .build();
+
+        mGoogleSignIn = GoogleSignIn.getClient(this,gso);
+        GoogleSignInAccount signInAccount = GoogleSignIn.getLastSignedInAccount(this);
+
         //if user is already registered
-        if(mAuth.getCurrentUser() != null){
+        if(mAuth.getCurrentUser() != null || signInAccount != null){
             startActivity(new Intent(getApplicationContext(), MenuActivity.class));
             finish();
         }
 
-        /*GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions
-                .Builder()
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
 
-        mGoogleSignIn = GoogleSignIn.getClient(this,googleSignInOptions);
-
-        */
 
         mSignUpButton.setOnClickListener(v -> tryToSignUp());
         mLoginButton.setOnClickListener(v -> tryToLogin());
         mForgotPassword.setOnClickListener(v ->  resetPassword());
+        mGoogleImage.setOnClickListener(v-> SignInGoogle());
     }
 
 
 //validation
-    private void validation(){
-        String email = mEmailEditText.getText().toString().trim();  // trim skip spaces
-        String password = mPasswordEditText.getText().toString().trim();
-        boolean failed = false;
-
+    private void validation(String email,String password){
         if (TextUtils.isEmpty(email)){
             mEmailEditText.setError("Pole nie może być puste");
-            failed = true;
+            return;
         }
         // mail body doesn't fit
-        if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
+        else if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
             mEmailEditText.setError("Pole musi być adresem E-mail");
-            failed = true;
+            return;
         }
         if (TextUtils.isEmpty(password)){
             mPasswordEditText.setError("Pole nie może być puste");
-            failed = true;
+            return;
         }
-        if(password.length()<6){
+        else if(password.length()<6){
             mPasswordEditText.setError("Hasło musi posiadać co najmniej 6 znaków");
-            failed = true;
+            return;
         }
         // Sign up correct
-        if(!failed) {
-            progressBar.setVisibility(View.VISIBLE);
-        }
+        progressBar.setVisibility(View.VISIBLE);
+
+
     }
 //Sign up
     private void tryToSignUp() {
         String email = mEmailEditText.getText().toString().trim();  // trim skip spaces
         String password = mPasswordEditText.getText().toString().trim();
-        validation();
-        signUp(email,password);
+        validation(email,password);
+        if(progressBar.getVisibility() == View.VISIBLE){
+            signUp(email,password);
+        }
+
     }
     private void signUp(String email, String password) {
         mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
-
-                //veryfication email
-                FirebaseUser user = mAuth.getCurrentUser();
-                user.sendEmailVerification().addOnSuccessListener(aVoid -> {
-                    Toast.makeText(MainActivity.this, "Veryfication mail has been sent to your email address", Toast.LENGTH_SHORT).show();
-                }).addOnFailureListener(e -> {
-                    Toast.makeText(MainActivity.this,"error" + e.getMessage(),Toast.LENGTH_SHORT).show();
-                });
+                sendVerificationEmail();
                 //new Activity
                 Toast.makeText(MainActivity.this, "User created", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(getApplicationContext(), MenuActivity.class));
@@ -145,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
             }
             else {
                 progressBar.setVisibility(View.INVISIBLE);
-                Toast.makeText(MainActivity.this, "Error! " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Error! " + Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -154,8 +146,12 @@ public class MainActivity extends AppCompatActivity {
     private void  tryToLogin(){
         String email = mEmailEditText.getText().toString().trim();  // trim skip spaces
         String password = mPasswordEditText.getText().toString().trim();
-        validation();
-        login(email,password);
+        validation(email,password);
+        //progressbar handle event if is visible
+        if(progressBar.getVisibility() == View.VISIBLE){
+            login(email,password);
+        }
+
     }
     private void login(String email,String password){
         mAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
@@ -174,10 +170,41 @@ public class MainActivity extends AppCompatActivity {
 //Google
     void SignInGoogle(){
         progressBar.setVisibility(View.VISIBLE);
+
+
         Intent signIntent = mGoogleSignIn.getSignInIntent();
         startActivityForResult(signIntent, GOOGLE_SIGN);
-
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == GOOGLE_SIGN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn
+                    .getSignedInAccountFromIntent(data);
+            try{
+                GoogleSignInAccount googleAccount = task.getResult(ApiException.class);
+                AuthCredential authCredential = GoogleAuthProvider.getCredential(googleAccount.getIdToken(),null);
+                mAuth.signInWithCredential(authCredential)
+                        .addOnCompleteListener(task1 -> {
+                        if(task1.isSuccessful()){
+                            Toast.makeText(this,"Your Google account is connected", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(getApplicationContext(),MenuActivity.class));
+                        }
+                        else{
+                            Toast.makeText(this,"Athentication failed " + task1.getException(), Toast.LENGTH_SHORT).show();
+                        }
+                });
+
+
+
+            } catch (ApiException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 //resetPassword
     private void resetPassword(){
         String email = mEmailEditText.getText().toString().trim();
@@ -198,62 +225,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == GOOGLE_SIGN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn
-                    .getSignedInAccountFromIntent(data);
-            try{
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                if( account != null) firebaseAuthWithGoogle(account);
-            } catch (ApiException e){
-                e.printStackTrace();
-            }
-        }
+//verification email
+    private void sendVerificationEmail(){
+        FirebaseUser user = mAuth.getCurrentUser();
+        user.sendEmailVerification().addOnSuccessListener(aVoid -> {
+            Toast.makeText(MainActivity.this, "Veryfication mail has been sent to your email address", Toast.LENGTH_SHORT).show();
+        }).addOnFailureListener(e -> {
+            Toast.makeText(MainActivity.this,"error" + e.getMessage(),Toast.LENGTH_SHORT).show();
+        });
     }
 
-    private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
-        Log.d("TAG", "firebaseWithGoogle: " + account.getId());
-
-        AuthCredential credential = GoogleAuthProvider
-                .getCredential(account.getIdToken(), null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if(task.isSuccessful()){
-                        progressBar.setVisibility(View.INVISIBLE);
-                        Log.d("Tag","sigin success");
-
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        UpdateUI(user);
-                    }
-                    else{
-                        progressBar.setVisibility(View.VISIBLE);
-                        Log.w("TAG", "sigin failure",task.getException());
-
-                        Toast.makeText(this, "SignIn Failed!", Toast.LENGTH_SHORT).show();
-                        UpdateUI(null);
-;                    }
-                });
-
-    }
-
-    private void UpdateUI(FirebaseUser user) {
-        if(user != null ){
-            String name = user.getDisplayName();
-            String email = user.getEmail();
-            String photo = String.valueOf(user.getPhotoUrl());
-
-            text.append("Info: \n");
-            text.append(name + "\n");
-            text.append(email);
-
-
-
-        }else{
-            text.setText("Firebase Login \n");
-            mGoogleImage.setVisibility(View.INVISIBLE);
-        }
-    }
 }
